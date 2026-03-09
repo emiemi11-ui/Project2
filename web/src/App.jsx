@@ -7,42 +7,53 @@ import { useAuth } from "./hooks/useAuth";
    —————————————————————————————————————————————— */
 
 // Public site
-const Landing = lazy(() => import("./pages/Landing"));
-const Features = lazy(() => import("./pages/Features"));
-const Plans = lazy(() => import("./pages/Plans"));
-const About = lazy(() => import("./pages/About"));
-const Download = lazy(() => import("./pages/Download"));
+const Landing = lazy(() => import("./site/PromoHome"));
+const Features = lazy(() => import("./site/PromoFeatures"));
+const Plans = lazy(() => import("./site/PromoPlans"));
+const About = lazy(() => import("./site/PromoAbout"));
+const Download = lazy(() => import("./site/PromoDownload"));
 
 // Auth
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
+const Login = lazy(() => import("./app/Login"));
+const Register = lazy(() => import("./app/Register"));
 
-// Dashboard
-const Dashboard = lazy(() => import("./pages/app/Dashboard"));
-const Ops = lazy(() => import("./pages/app/Ops"));
-const Personnel = lazy(() => import("./pages/app/Personnel"));
-const Units = lazy(() => import("./pages/app/Units"));
-const Alerts = lazy(() => import("./pages/app/Alerts"));
+// Dashboard redirect
+const Dashboard = lazy(() => import("./app/Dashboard"));
 
-// Clinical
-const Patients = lazy(() => import("./pages/app/Patients"));
-const PatientDetail = lazy(() => import("./pages/app/PatientDetail"));
-const Appointments = lazy(() => import("./pages/app/Appointments"));
+// Commander
+const CommanderOps = lazy(() => import("./app/commander/CommanderOps"));
+const Personnel = lazy(() => import("./app/commander/Personnel"));
+const Units = lazy(() => import("./app/commander/Units"));
+const Alerts = lazy(() => import("./app/commander/Alerts"));
 
-// Wellness
-const Mood = lazy(() => import("./pages/app/Mood"));
-const Stress = lazy(() => import("./pages/app/Stress"));
-const Sessions = lazy(() => import("./pages/app/Sessions"));
+// Physician
+const PhysicianPatients = lazy(() => import("./app/physician/PhysicianPatients"));
+const PatientDetail = lazy(() => import("./app/physician/PatientDetail"));
+const PhysicianAppointments = lazy(() => import("./app/physician/PhysicianAppointments"));
 
-// Performance
-const Team = lazy(() => import("./pages/app/Team"));
-const AthleteDetail = lazy(() => import("./pages/app/AthleteDetail"));
-const Programs = lazy(() => import("./pages/app/Programs"));
-const Acwr = lazy(() => import("./pages/app/Acwr"));
+// Psychologist
+const PsychMood = lazy(() => import("./app/psychologist/PsychMood"));
+const PsychStress = lazy(() => import("./app/psychologist/PsychStress"));
+const PsychSessions = lazy(() => import("./app/psychologist/PsychSessions"));
+
+// Trainer
+const TrainerTeam = lazy(() => import("./app/trainer/TrainerTeam"));
+const TrainerAthleteDetail = lazy(() => import("./app/trainer/TrainerAthleteDetail"));
+const TrainerPrograms = lazy(() => import("./app/trainer/TrainerPrograms"));
+const TrainerAcwr = lazy(() => import("./app/trainer/TrainerAcwr"));
+
+// Patient
+const PatientHome = lazy(() => import("./app/patient/PatientHome"));
+const PatientMedications = lazy(() => import("./app/patient/PatientMedications"));
+const PatientMessages = lazy(() => import("./app/patient/PatientMessages"));
+
+// Soldier
+const SoldierStatus = lazy(() => import("./app/soldier/SoldierStatus"));
+const SoldierTraining = lazy(() => import("./app/soldier/SoldierTraining"));
 
 // Admin
-const Users = lazy(() => import("./pages/app/Users"));
-const System = lazy(() => import("./pages/app/System"));
+const AdminUsers = lazy(() => import("./app/admin/AdminUsers"));
+const AdminSystem = lazy(() => import("./app/admin/AdminSystem"));
 
 /* ——————————————————————————————————————————————
    Loading Fallback
@@ -106,12 +117,12 @@ export default function App() {
           }
         />
 
-        {/* Operations — commander, admin */}
+        {/* Commander — ops, personnel, units */}
         <Route
           path="/app/ops"
           element={
             <ProtectedRoute allowedRoles={["commander", "admin"]}>
-              <Ops />
+              <CommanderOps />
             </ProtectedRoute>
           }
         />
@@ -140,12 +151,12 @@ export default function App() {
           }
         />
 
-        {/* Clinical — physician, psychologist, admin */}
+        {/* Physician */}
         <Route
           path="/app/patients"
           element={
             <ProtectedRoute allowedRoles={["physician", "psychologist", "admin"]}>
-              <Patients />
+              <PhysicianPatients />
             </ProtectedRoute>
           }
         />
@@ -161,17 +172,17 @@ export default function App() {
           path="/app/appointments"
           element={
             <ProtectedRoute allowedRoles={["physician", "psychologist", "admin", "patient"]}>
-              <Appointments />
+              <PhysicianAppointments />
             </ProtectedRoute>
           }
         />
 
-        {/* Wellness — psychologist, patient, soldier, admin */}
+        {/* Psychologist */}
         <Route
           path="/app/mood"
           element={
             <ProtectedRoute allowedRoles={["psychologist", "patient", "soldier", "admin"]}>
-              <Mood />
+              <PsychMood />
             </ProtectedRoute>
           }
         />
@@ -179,7 +190,7 @@ export default function App() {
           path="/app/stress"
           element={
             <ProtectedRoute allowedRoles={["psychologist", "patient", "soldier", "admin"]}>
-              <Stress />
+              <PsychStress />
             </ProtectedRoute>
           }
         />
@@ -187,17 +198,17 @@ export default function App() {
           path="/app/sessions"
           element={
             <ProtectedRoute allowedRoles={["psychologist", "admin"]}>
-              <Sessions />
+              <PsychSessions />
             </ProtectedRoute>
           }
         />
 
-        {/* Performance — trainer, commander, admin */}
+        {/* Trainer */}
         <Route
           path="/app/team"
           element={
             <ProtectedRoute allowedRoles={["trainer", "commander", "admin"]}>
-              <Team />
+              <TrainerTeam />
             </ProtectedRoute>
           }
         />
@@ -205,7 +216,7 @@ export default function App() {
           path="/app/athlete/:id"
           element={
             <ProtectedRoute allowedRoles={["trainer", "commander", "admin"]}>
-              <AthleteDetail />
+              <TrainerAthleteDetail />
             </ProtectedRoute>
           }
         />
@@ -213,7 +224,7 @@ export default function App() {
           path="/app/programs"
           element={
             <ProtectedRoute allowedRoles={["trainer", "admin"]}>
-              <Programs />
+              <TrainerPrograms />
             </ProtectedRoute>
           }
         />
@@ -221,7 +232,51 @@ export default function App() {
           path="/app/acwr"
           element={
             <ProtectedRoute allowedRoles={["trainer", "commander", "admin"]}>
-              <Acwr />
+              <TrainerAcwr />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Patient */}
+        <Route
+          path="/app/my-health"
+          element={
+            <ProtectedRoute allowedRoles={["patient"]}>
+              <PatientHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/medications"
+          element={
+            <ProtectedRoute allowedRoles={["patient"]}>
+              <PatientMedications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/messages"
+          element={
+            <ProtectedRoute allowedRoles={["patient"]}>
+              <PatientMessages />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Soldier */}
+        <Route
+          path="/app/my-readiness"
+          element={
+            <ProtectedRoute allowedRoles={["soldier"]}>
+              <SoldierStatus />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/my-training"
+          element={
+            <ProtectedRoute allowedRoles={["soldier"]}>
+              <SoldierTraining />
             </ProtectedRoute>
           }
         />
@@ -231,7 +286,7 @@ export default function App() {
           path="/app/users"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              <Users />
+              <AdminUsers />
             </ProtectedRoute>
           }
         />
@@ -239,7 +294,7 @@ export default function App() {
           path="/app/system"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              <System />
+              <AdminSystem />
             </ProtectedRoute>
           }
         />

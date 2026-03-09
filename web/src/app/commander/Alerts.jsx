@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { AlertTriangle, Bell, Info, Filter, Check, X } from 'lucide-react';
-import { persons, alerts as staticAlerts } from '../data/mockData';
+import { persons, alerts as staticAlerts } from '../../data/mockData';
 
 /* ── colour tokens ── */
 const GREEN  = '#00E5A0';

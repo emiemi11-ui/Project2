@@ -3,7 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 import { RefreshCw, AlertTriangle, Shield, Heart, Moon } from 'lucide-react';
-import { persons, units as unitsList, alerts as rawAlerts } from '../data/mockData';
+import { persons, units as unitsList, alerts as rawAlerts } from '../../data/mockData';
 
 /* ── colour tokens ── */
 const GREEN  = '#00E5A0';
