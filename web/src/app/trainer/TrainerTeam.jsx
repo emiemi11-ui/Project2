@@ -1,8 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { persons } from "../../data/mockData";
-import { useAuth } from "../../hooks/useAuth";
-import { ResponsiveContainer, RadialBarChart, RadialBar } from "recharts";
+import { persons, acwrData } from "../../data/mockData";
+import {
+  ResponsiveContainer, RadialBarChart, RadialBar, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip, LineChart, Line,
+} from "recharts";
+import { AnimatedSection, StaggerContainer, StaggerItem, AnimatedNumber } from "../../components/AnimatedSection";
+import { motion } from "framer-motion";
 
 const statusColor = {
   ready: { bg: "bg-emerald-500/20", text: "text-emerald-400", dot: "bg-emerald-400", label: "Ready" },
@@ -29,101 +33,118 @@ function MiniGauge({ value, color }) {
   );
 }
 
+function Sparkline({ data, color, height = 30 }) {
+  return (
+    <div style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <Line type="monotone" dataKey="value" stroke={color} strokeWidth={1.5} dot={false} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 export default function TrainerTeam() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("readiness");
 
   const athletes = useMemo(() => {
-    const list = persons.filter((p) =>
-      ["soldier", "patient"].includes(p.role) || p.archetype
-    ).map((p) => ({
-      ...p,
-      status: getStatus(p.scores.readiness),
-      acwr: (0.7 + Math.random() * 0.9).toFixed(2),
-    }));
+    const list = persons
+      .filter((p) => ["soldier", "patient"].includes(p.role))
+      .map((p) => {
+        const acwr = acwrData.find((a) => a.personId === p.id);
+        return {
+          ...p,
+          status: getStatus(p.metrics.readinessScore),
+          acwr: acwr ? acwr.ratio : parseFloat((0.7 + (p.metrics.readinessScore / 100) * 0.9).toFixed(2)),
+          acwrZone: acwr ? acwr.zone : "optimal",
+        };
+      });
 
     let filtered = filter === "all" ? list : list.filter((a) => a.status === filter);
     filtered.sort((a, b) => {
-      if (sortBy === "readiness") return b.scores.readiness - a.scores.readiness;
+      if (sortBy === "readiness") return b.metrics.readinessScore - a.metrics.readinessScore;
       if (sortBy === "name") return a.name.localeCompare(b.name);
-      return parseFloat(b.acwr) - parseFloat(a.acwr);
+      return b.acwr - a.acwr;
     });
     return filtered;
   }, [filter, sortBy]);
 
   const stats = useMemo(() => {
-    const all = persons.filter((p) => p.scores);
-    const avg = Math.round(all.reduce((s, p) => s + p.scores.readiness, 0) / all.length);
-    const ready = all.filter((p) => p.scores.readiness >= 70).length;
-    const atRisk = all.filter((p) => p.scores.readiness < 45).length;
-    return { total: all.length, avg, ready, atRisk };
+    const all = persons.filter((p) => ["soldier", "patient"].includes(p.role));
+    const avg = all.length > 0 ? Math.round(all.reduce((s, p) => s + p.metrics.readinessScore, 0) / all.length) : 0;
+    const ready = all.filter((p) => p.metrics.readinessScore >= 70).length;
+    const atRisk = all.filter((p) => p.metrics.readinessScore < 45).length;
+    const avgAcwr = acwrData.length > 0 ? (acwrData.reduce((s, a) => s + a.ratio, 0) / acwrData.length).toFixed(2) : "N/A";
+    return { total: all.length, avg, ready, atRisk, avgAcwr };
+  }, []);
+
+  const barChartData = useMemo(() => {
+    return persons
+      .filter((p) => ["soldier", "patient"].includes(p.role))
+      .slice(0, 12)
+      .map((p) => ({
+        name: p.name.split(" ")[1] || p.name.split(" ")[0],
+        readiness: p.metrics.readinessScore,
+        fill: p.metrics.readinessScore >= 70 ? "#22c55e" : p.metrics.readinessScore >= 45 ? "#f59e0b" : "#ef4444",
+      }));
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0f14] text-white flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-[#0d1117] border-r border-gray-800/50 flex flex-col p-4 hidden lg:flex">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center font-bold text-black text-sm">V</div>
-          <span className="font-bold text-lg tracking-tight">Vita<span className="text-orange-400">Nova</span></span>
-        </div>
-        <nav className="flex-1 space-y-1">
-          {[
-            { label: "Team", path: "/app/team", active: true },
-            { label: "Programs", path: "/app/programs" },
-            { label: "ACWR Monitor", path: "/app/acwr" },
-            { label: "Alerts", path: "/app/alerts" },
-          ].map((item) => (
-            <button
-              key={item.label}
-              onClick={() => navigate(item.path)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                item.active ? "bg-orange-500/15 text-orange-400" : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        <button onClick={logout} className="text-sm text-gray-500 hover:text-red-400 transition-colors px-3 py-2">
-          Logout
-        </button>
-      </aside>
-
-      {/* Main */}
-      <main className="flex-1 p-6 overflow-auto">
-        {/* Top bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <h1 className="text-2xl font-bold">Team Overview</h1>
-          <div className="flex items-center gap-6 text-sm">
+    <main className="p-4 sm:p-6 overflow-auto">
+      {/* KPI Row */}
+      <AnimatedSection>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold">Team Overview</h1>
+          <div className="flex items-center gap-4 sm:gap-6 text-sm">
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-400">{stats.total}</div>
-              <div className="text-gray-500 text-xs uppercase tracking-wider">Athletes</div>
+              <div className="text-xl sm:text-2xl font-bold text-orange-400"><AnimatedNumber value={stats.total} /></div>
+              <div className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider">Athletes</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-400">{stats.avg}%</div>
-              <div className="text-gray-500 text-xs uppercase tracking-wider">Avg Readiness</div>
+              <div className="text-xl sm:text-2xl font-bold text-cyan-400"><AnimatedNumber value={stats.avg} />%</div>
+              <div className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider">Avg Ready</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-emerald-400">{stats.ready}</div>
-              <div className="text-gray-500 text-xs uppercase tracking-wider">Ready</div>
+              <div className="text-xl sm:text-2xl font-bold text-emerald-400"><AnimatedNumber value={stats.ready} /></div>
+              <div className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider">Ready</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-400">{stats.atRisk}</div>
-              <div className="text-gray-500 text-xs uppercase tracking-wider">At Risk</div>
+              <div className="text-xl sm:text-2xl font-bold text-red-400"><AnimatedNumber value={stats.atRisk} /></div>
+              <div className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider">At Risk</div>
             </div>
           </div>
         </div>
+      </AnimatedSection>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
+      {/* Readiness Chart */}
+      <AnimatedSection delay={0.1}>
+        <div className="rounded-xl bg-[#0d1117] border border-gray-800/50 p-4 sm:p-6 mb-6">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Readiness by Athlete</h2>
+          <div className="h-48 sm:h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis dataKey="name" tick={{ fill: "#6b7280", fontSize: 10 }} angle={-30} textAnchor="end" height={50} />
+                <YAxis domain={[0, 100]} tick={{ fill: "#6b7280", fontSize: 10 }} />
+                <Tooltip contentStyle={{ background: "#0d1117", border: "1px solid #1f2937", borderRadius: 8 }} />
+                <Bar dataKey="readiness" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </AnimatedSection>
+
+      {/* Filters */}
+      <AnimatedSection delay={0.15}>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
           {["all", "ready", "monitor", "risk"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                 filter === f
                   ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
                   : "bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:text-white"
@@ -135,23 +156,36 @@ export default function TrainerTeam() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="ml-auto px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 text-sm text-gray-300"
+            className="ml-auto px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 text-xs sm:text-sm text-gray-300"
           >
             <option value="readiness">Sort: Readiness</option>
             <option value="name">Sort: Name</option>
             <option value="acwr">Sort: ACWR</option>
           </select>
         </div>
+      </AnimatedSection>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {athletes.map((athlete) => {
-            const st = statusColor[athlete.status];
-            return (
-              <button
-                key={athlete.id}
+      {/* Empty state */}
+      {athletes.length === 0 && (
+        <AnimatedSection>
+          <div className="text-center py-16 text-gray-500">
+            <div className="text-4xl mb-4">🔍</div>
+            <p className="text-lg font-medium">No athletes match this filter</p>
+            <p className="text-sm mt-1">Try changing the filter or sort criteria</p>
+          </div>
+        </AnimatedSection>
+      )}
+
+      {/* Grid */}
+      <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {athletes.map((athlete) => {
+          const st = statusColor[athlete.status];
+          return (
+            <StaggerItem key={athlete.id}>
+              <motion.button
                 onClick={() => navigate(`/app/athlete/${athlete.id}`)}
-                className="text-left rounded-xl bg-[#0d1117] border border-gray-800/50 p-5 hover:border-orange-500/30 transition-all group"
+                whileHover={{ scale: 1.02 }}
+                className="w-full text-left rounded-xl bg-[#0d1117] border border-gray-800/50 p-4 sm:p-5 hover:border-orange-500/40 hover:shadow-lg hover:shadow-orange-500/5 transition-all duration-200 group"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -159,37 +193,47 @@ export default function TrainerTeam() {
                       {athlete.name.split(" ").map((n) => n[0]).join("")}
                     </div>
                     <div>
-                      <div className="font-semibold text-white group-hover:text-orange-400 transition-colors">{athlete.name}</div>
-                      <div className="text-xs text-gray-500">{athlete.unit}</div>
+                      <div className="font-semibold text-white group-hover:text-orange-400 transition-colors text-sm sm:text-base">{athlete.name}</div>
+                      <div className="text-[10px] sm:text-xs text-gray-500">{athlete.unit}</div>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${st.bg} ${st.text}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${st.bg} ${st.text}`}>
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${st.dot} mr-1`} />
                     {st.label}
                   </span>
                 </div>
+
+                {/* Sparkline */}
+                <div className="mb-3">
+                  <Sparkline
+                    data={athlete.history.readiness}
+                    color={athlete.metrics.readinessScore >= 70 ? "#22c55e" : athlete.metrics.readinessScore >= 45 ? "#f59e0b" : "#ef4444"}
+                  />
+                </div>
+
                 <div className="grid grid-cols-4 gap-2 text-center">
                   <div>
-                    <div className="text-lg font-bold text-white">{athlete.scores.readiness}</div>
-                    <div className="text-[10px] text-gray-500 uppercase">Ready</div>
+                    <div className="text-base sm:text-lg font-bold text-white">{athlete.metrics.readinessScore}</div>
+                    <div className="text-[9px] sm:text-[10px] text-gray-500 uppercase">Ready</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-cyan-400">{athlete.scores.hrv}</div>
-                    <div className="text-[10px] text-gray-500 uppercase">HRV</div>
+                    <div className="text-base sm:text-lg font-bold text-cyan-400">{athlete.metrics.hrvScore}</div>
+                    <div className="text-[9px] sm:text-[10px] text-gray-500 uppercase">HRV</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-blue-400">{athlete.scores.sleep}</div>
-                    <div className="text-[10px] text-gray-500 uppercase">Sleep</div>
+                    <div className="text-base sm:text-lg font-bold text-blue-400">{athlete.metrics.sleepScore}</div>
+                    <div className="text-[9px] sm:text-[10px] text-gray-500 uppercase">Sleep</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-amber-400">{athlete.acwr}</div>
-                    <div className="text-[10px] text-gray-500 uppercase">ACWR</div>
+                    <div className="text-base sm:text-lg font-bold text-amber-400">{athlete.acwr}</div>
+                    <div className="text-[9px] sm:text-[10px] text-gray-500 uppercase">ACWR</div>
                   </div>
                 </div>
-              </button>
-            );
-          })}
-        </div>
-      </main>
-    </div>
+              </motion.button>
+            </StaggerItem>
+          );
+        })}
+      </StaggerContainer>
+    </main>
   );
 }

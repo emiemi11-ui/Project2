@@ -5,6 +5,8 @@ import {
 } from 'recharts';
 import { Users, AlertTriangle, ChevronRight } from 'lucide-react';
 import { persons, units as unitsList } from '../../data/mockData';
+import { motion } from 'framer-motion';
+import { AnimatedSection, StaggerContainer, StaggerItem } from '../../components/AnimatedSection';
 
 /* ── colour tokens ── */
 const GREEN  = '#00E5A0';
@@ -60,7 +62,9 @@ function RadialGauge({ value, size = 72 }) {
 /* ── Unit card ── */
 function UnitCard({ unit, metrics, topAlert, onDrillDown }) {
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -4, scale: 1.01 }}
+      transition={{ duration: 0.2 }}
       className="bg-[#111318] border border-[#1e2028] rounded-lg p-4 hover:border-[#2a2d36] transition-colors cursor-pointer"
       onClick={onDrillDown}
     >
@@ -105,7 +109,7 @@ function UnitCard({ unit, metrics, topAlert, onDrillDown }) {
         <span>Details</span>
         <ChevronRight size={12} />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -254,19 +258,22 @@ export default function Units() {
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-[#e5e7eb] font-mono p-4 space-y-4">
+      <AnimatedSection>
       <h1 className="text-lg font-bold tracking-wide" style={{ color: CYAN }}>
         UNIT OVERVIEW
       </h1>
+      </AnimatedSection>
 
       {/* Unit cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+      <AnimatedSection delay={0.05}>
+      <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         {unitMetrics
           .sort((a, b) => a.avgReadiness - b.avgReadiness)
           .map((um) => {
             const info = unitsInfo[um.name];
             return (
+              <StaggerItem key={um.name}>
               <UnitCard
-                key={um.name}
                 unit={{
                   name: um.name,
                   commander: info?.commander || '—',
@@ -275,11 +282,14 @@ export default function Units() {
                 topAlert={um.topAlert}
                 onDrillDown={() => setSelectedUnit(um.name)}
               />
+              </StaggerItem>
             );
           })}
-      </div>
+      </StaggerContainer>
+      </AnimatedSection>
 
       {/* Radar comparison chart */}
+      <AnimatedSection delay={0.1}>
       <div className="bg-[#111318] border border-[#1e2028] rounded-lg p-4">
         <h2 className="text-xs uppercase tracking-wider text-[#6b7280] mb-3">
           Unit Comparison — Key Metrics
@@ -326,6 +336,7 @@ export default function Units() {
           </ResponsiveContainer>
         </div>
       </div>
+      </AnimatedSection>
     </div>
   );
 }

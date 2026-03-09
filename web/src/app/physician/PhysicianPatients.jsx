@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { persons, alerts, appointments } from "../../data/mockData";
+import { motion } from "framer-motion";
+import { AnimatedSection } from "../../components/AnimatedSection";
 
 /* ——————————————————————————————————————————————
    Status dot color map
@@ -46,7 +48,7 @@ function getLastVisit(personId) {
    —————————————————————————————————————————————— */
 function VitalCard({ label, value, unit, color, icon }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-1 shadow-sm">
+    <motion.div whileHover={{ y: -2, scale: 1.02 }} transition={{ duration: 0.2 }} className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-1 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center gap-2 text-gray-500 text-xs font-medium uppercase tracking-wide">
         <span>{icon}</span>
         <span>{label}</span>
@@ -55,7 +57,7 @@ function VitalCard({ label, value, unit, color, icon }) {
         <span className={`text-2xl font-bold ${color}`}>{value}</span>
         <span className="text-gray-400 text-sm">{unit}</span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -99,7 +101,12 @@ export default function PhysicianPatients() {
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-[#F8F9FA]">
       {/* ——— Left Panel: Patient List ——— */}
-      <aside className="w-80 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col">
+      <motion.aside
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="w-80 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col"
+      >
         {/* Search */}
         <div className="p-4 border-b border-gray-100">
           <h2 className="text-lg font-bold text-[#1A1A2E] mb-3">Pacienți</h2>
@@ -187,7 +194,7 @@ export default function PhysicianPatients() {
             {filteredPatients.length} pacienți
           </span>
         </div>
-      </aside>
+      </motion.aside>
 
       {/* ——— Main Area: Selected Patient Overview ——— */}
       <main className="flex-1 overflow-y-auto p-6">
@@ -216,7 +223,13 @@ export default function PhysicianPatients() {
             </div>
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto space-y-6">
+          <motion.div
+            key={selectedPatientId}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="max-w-4xl mx-auto space-y-6"
+          >
             {/* Patient Header */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
               <div className="flex items-start gap-4">
@@ -435,7 +448,7 @@ export default function PhysicianPatients() {
                 Alert
               </button>
             </div>
-          </div>
+          </motion.div>
         )}
       </main>
     </div>

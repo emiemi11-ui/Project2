@@ -4,6 +4,8 @@ import {
   PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { persons, accounts } from "../../data/mockData";
+import { motion } from "framer-motion";
+import { AnimatedSection } from "../../components/AnimatedSection";
 
 /* ——————————————————————————————————————————————
    Admin System — System overview dashboard
@@ -73,14 +75,14 @@ function generateRecentActivity() {
 /* ——— Stat Card ——— */
 function StatCard({ label, value, sub, icon }) {
   return (
-    <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-5">
+    <motion.div whileHover={{ y: -2, scale: 1.02 }} transition={{ duration: 0.2 }} className="bg-[#111827] border border-[#1F2937] rounded-xl p-5 hover:border-[#374151] transition-colors">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">{label}</span>
         <span className="text-lg">{icon}</span>
       </div>
       <p className="text-3xl font-bold text-white">{value}</p>
       {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
-    </div>
+    </motion.div>
   );
 }
 
@@ -170,20 +172,25 @@ export default function AdminSystem() {
   return (
     <div className="min-h-screen bg-[#0A0F1A] text-white p-6 space-y-6">
       {/* Header */}
+      <AnimatedSection>
       <div>
         <h1 className="text-2xl font-bold">System Overview</h1>
         <p className="text-gray-400 text-sm mt-1">VitaNova platform health and analytics</p>
       </div>
+      </AnimatedSection>
 
       {/* Stats Row */}
+      <AnimatedSection delay={0.05}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Users" value={totalUsers} sub={`${accounts.length} with accounts`} icon="👥" />
         <StatCard label="Active Today" value={activeToday} sub={`${Math.round((activeToday / totalUsers) * 100)}% of total`} icon="🟢" />
         <StatCard label="Data Points Collected" value={dataPoints.toLocaleString()} sub="Last 7 days" icon="📊" />
         <StatCard label="Storage Used" value={storageUsed} sub="of 10 GB allocated" icon="💾" />
       </div>
+      </AnimatedSection>
 
       {/* Charts Row */}
+      <AnimatedSection delay={0.1}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Growth Line Chart */}
         <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-5">
@@ -307,8 +314,10 @@ export default function AdminSystem() {
           </div>
         </div>
       </div>
+      </AnimatedSection>
 
       {/* Recent Activity Log */}
+      <AnimatedSection delay={0.15}>
       <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-5">
         <h2 className="text-sm font-semibold text-gray-300 mb-4">Recent Activity Log</h2>
         <div className="overflow-x-auto">
@@ -338,6 +347,7 @@ export default function AdminSystem() {
           </table>
         </div>
       </div>
+      </AnimatedSection>
     </div>
   );
 }

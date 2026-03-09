@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { persons } from "../../data/mockData";
-import { useAuth } from "../../hooks/useAuth";
+import { persons, acwrData } from "../../data/mockData";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceLine, ReferenceArea,
 } from "recharts";
+import { AnimatedSection, StaggerContainer, StaggerItem, AnimatedNumber } from "../../components/AnimatedSection";
+import { motion } from "framer-motion";
 
 function generateAcwrHistory(seed) {
   const history = [];
@@ -13,7 +14,7 @@ function generateAcwrHistory(seed) {
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    acwr += (Math.random() - 0.48) * 0.08;
+    acwr += (Math.sin(seed + i * 0.3) * 0.04) + ((seed * 13 + i * 7) % 100 / 100 - 0.48) * 0.06;
     acwr = Math.max(0.4, Math.min(2.0, acwr));
     history.push({ date: d.toISOString().split("T")[0].slice(5), acwr: parseFloat(acwr.toFixed(2)) });
   }
@@ -29,15 +30,16 @@ function getAcwrZone(acwr) {
 
 export default function TrainerAcwr() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const [selectedId, setSelectedId] = useState(null);
 
   const athleteData = useMemo(() => {
     return persons
-      .filter((p) => p.scores)
+      .filter((p) => ["soldier", "patient"].includes(p.role))
       .slice(0, 16)
       .map((p, i) => {
+        const acwr = acwrData.find((a) => a.personId === p.id);
         const history = generateAcwrHistory(i * 7 + p.age);
-        const current = history[history.length - 1].acwr;
+        const current = acwr ? acwr.ratio : history[history.length - 1].acwr;
         const prev = history[history.length - 2].acwr;
         return {
           ...p,
@@ -52,82 +54,116 @@ export default function TrainerAcwr() {
 
   const dangerAthletes = athleteData.filter((a) => a.currentAcwr > 1.5);
   const warningAthletes = athleteData.filter((a) => a.currentAcwr > 1.3 && a.currentAcwr <= 1.5);
-  const selectedAthlete = athleteData[0];
+  const selectedAthlete = selectedId ? athleteData.find((a) => a.id === selectedId) || athleteData[0] : athleteData[0];
+
+  const stats = useMemo(() => {
+    const avg = athleteData.length > 0 ? (athleteData.reduce((s, a) => s + a.currentAcwr, 0) / athleteData.length).toFixed(2) : "0";
+    return {
+      total: athleteData.length,
+      danger: dangerAthletes.length,
+      warning: warningAthletes.length,
+      optimal: athleteData.filter((a) => a.currentAcwr >= 0.8 && a.currentAcwr <= 1.3).length,
+      avg,
+    };
+  }, [athleteData, dangerAthletes, warningAthletes]);
 
   return (
-    <div className="min-h-screen bg-[#0a0f14] text-white flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-[#0d1117] border-r border-gray-800/50 flex flex-col p-4 hidden lg:flex">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center font-bold text-black text-sm">V</div>
-          <span className="font-bold text-lg tracking-tight">Vita<span className="text-orange-400">Nova</span></span>
+    <main className="p-4 sm:p-6 overflow-auto">
+      {/* Header + KPIs */}
+      <AnimatedSection>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold">ACWR Monitor</h1>
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="text-center">
+              <div className="text-xl font-bold text-orange-400">{stats.avg}</div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">Avg ACWR</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-emerald-400"><AnimatedNumber value={stats.optimal} /></div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">Optimal</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-amber-400"><AnimatedNumber value={stats.warning} /></div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">Warning</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-red-400"><AnimatedNumber value={stats.danger} /></div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">Danger</div>
+            </div>
+          </div>
         </div>
-        <nav className="flex-1 space-y-1">
-          {[
-            { label: "Team", path: "/app/team" },
-            { label: "Programs", path: "/app/programs" },
-            { label: "ACWR Monitor", path: "/app/acwr", active: true },
-            { label: "Alerts", path: "/app/alerts" },
-          ].map((item) => (
-            <button
-              key={item.label}
-              onClick={() => navigate(item.path)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                item.active ? "bg-orange-500/15 text-orange-400" : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        <button onClick={logout} className="text-sm text-gray-500 hover:text-red-400 transition-colors px-3 py-2">Logout</button>
-      </aside>
+      </AnimatedSection>
 
-      <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-2xl font-bold mb-6">ACWR Monitor</h1>
-
-        {/* Alert Panel */}
-        {(dangerAthletes.length > 0 || warningAthletes.length > 0) && (
+      {/* Alert Panels */}
+      {(dangerAthletes.length > 0 || warningAthletes.length > 0) && (
+        <AnimatedSection delay={0.1}>
           <div className="mb-6 space-y-3">
             {dangerAthletes.length > 0 && (
-              <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-4">
+              <motion.div
+                initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
+                className="rounded-xl bg-red-500/10 border border-red-500/30 p-4"
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
                   <span className="text-sm font-semibold text-red-400 uppercase tracking-wider">Danger Zone ({dangerAthletes.length})</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {dangerAthletes.map((a) => (
-                    <span key={a.id} className="px-3 py-1 rounded-lg bg-red-500/15 text-xs text-red-300">
+                    <button
+                      key={a.id}
+                      onClick={() => navigate(`/app/athlete/${a.id}`)}
+                      className="px-3 py-1.5 rounded-lg bg-red-500/15 text-xs text-red-300 hover:bg-red-500/25 transition-colors"
+                    >
                       {a.name}: {a.currentAcwr}
-                    </span>
+                    </button>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
             {warningAthletes.length > 0 && (
-              <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-4">
+              <motion.div
+                initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }}
+                className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-4"
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-amber-400" />
                   <span className="text-sm font-semibold text-amber-400 uppercase tracking-wider">Warning Zone ({warningAthletes.length})</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {warningAthletes.map((a) => (
-                    <span key={a.id} className="px-3 py-1 rounded-lg bg-amber-500/15 text-xs text-amber-300">
+                    <button
+                      key={a.id}
+                      onClick={() => navigate(`/app/athlete/${a.id}`)}
+                      className="px-3 py-1.5 rounded-lg bg-amber-500/15 text-xs text-amber-300 hover:bg-amber-500/25 transition-colors"
+                    >
                       {a.name}: {a.currentAcwr}
-                    </span>
+                    </button>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
-        )}
+        </AnimatedSection>
+      )}
 
-        {/* ACWR Chart */}
-        <div className="rounded-xl bg-[#0d1117] border border-gray-800/50 p-6 mb-6">
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
-            ACWR Trend — {selectedAthlete.name}
-          </h2>
-          <div className="h-72">
+      {/* Athlete selector + ACWR Chart */}
+      <AnimatedSection delay={0.15}>
+        <div className="rounded-xl bg-[#0d1117] border border-gray-800/50 p-4 sm:p-6 mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+              ACWR Trend — {selectedAthlete.name}
+            </h2>
+            <select
+              value={selectedAthlete.id}
+              onChange={(e) => setSelectedId(e.target.value)}
+              className="px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 text-xs sm:text-sm text-gray-300"
+            >
+              {athleteData.map((a) => (
+                <option key={a.id} value={a.id}>{a.name} ({a.currentAcwr})</option>
+              ))}
+            </select>
+          </div>
+          <div className="h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={selectedAthlete.history}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -145,21 +181,23 @@ export default function TrainerAcwr() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex items-center gap-6 mt-4 text-xs text-gray-500">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-4 text-[10px] sm:text-xs text-gray-500">
             <div className="flex items-center gap-1.5"><div className="w-3 h-2 bg-blue-500/30 rounded" /> Under ({"<"}0.8)</div>
             <div className="flex items-center gap-1.5"><div className="w-3 h-2 bg-emerald-500/30 rounded" /> Optimal (0.8–1.3)</div>
             <div className="flex items-center gap-1.5"><div className="w-3 h-2 bg-amber-500/30 rounded" /> Warning (1.3–1.5)</div>
             <div className="flex items-center gap-1.5"><div className="w-3 h-2 bg-red-500/30 rounded" /> Danger ({">"}1.5)</div>
           </div>
         </div>
+      </AnimatedSection>
 
-        {/* Athletes Table */}
+      {/* Athletes Table */}
+      <AnimatedSection delay={0.2}>
         <div className="rounded-xl bg-[#0d1117] border border-gray-800/50 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-800/50">
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 uppercase tracking-wider">Athlete</th>
+                  <th className="text-left px-4 sm:px-5 py-3 text-xs text-gray-500 uppercase tracking-wider">Athlete</th>
                   <th className="text-center px-4 py-3 text-xs text-gray-500 uppercase tracking-wider">ACWR</th>
                   <th className="text-center px-4 py-3 text-xs text-gray-500 uppercase tracking-wider">Zone</th>
                   <th className="text-center px-4 py-3 text-xs text-gray-500 uppercase tracking-wider">Trend</th>
@@ -167,19 +205,27 @@ export default function TrainerAcwr() {
                 </tr>
               </thead>
               <tbody>
-                {athleteData.map((athlete) => (
-                  <tr key={athlete.id} className="border-b border-gray-800/30 hover:bg-gray-800/20">
-                    <td className="px-5 py-3">
+                {athleteData.map((athlete, i) => (
+                  <motion.tr
+                    key={athlete.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.03 }}
+                    className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors"
+                  >
+                    <td className="px-4 sm:px-5 py-3">
                       <button onClick={() => navigate(`/app/athlete/${athlete.id}`)} className="text-sm font-medium text-white hover:text-orange-400 transition-colors">
                         {athlete.name}
                       </button>
-                      <div className="text-xs text-gray-500">{athlete.unit}</div>
+                      <div className="text-[10px] sm:text-xs text-gray-500">{athlete.unit}</div>
                     </td>
                     <td className="text-center px-4 py-3">
                       <span className="text-sm font-bold" style={{ color: athlete.zone.color }}>{athlete.currentAcwr}</span>
                     </td>
                     <td className="text-center px-4 py-3">
-                      <span className="text-xs font-medium" style={{ color: athlete.zone.color }}>{athlete.zone.label}</span>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ color: athlete.zone.color, backgroundColor: athlete.zone.color + "15" }}>
+                        {athlete.zone.label}
+                      </span>
                     </td>
                     <td className="text-center px-4 py-3">
                       <span className={`text-sm ${athlete.trend === "up" ? "text-red-400" : athlete.trend === "down" ? "text-emerald-400" : "text-gray-400"}`}>
@@ -192,13 +238,13 @@ export default function TrainerAcwr() {
                        athlete.currentAcwr < 0.8 ? "Increase training volume gradually" :
                        "Maintain current program"}
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
-      </main>
-    </div>
+      </AnimatedSection>
+    </main>
   );
 }

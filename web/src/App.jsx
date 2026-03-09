@@ -20,6 +20,14 @@ const Register = lazy(() => import("./app/Register"));
 // Dashboard redirect
 const Dashboard = lazy(() => import("./app/Dashboard"));
 
+// Layouts
+const CommanderLayout = lazy(() => import("./app/layouts/CommanderLayout"));
+const PhysicianLayout = lazy(() => import("./app/layouts/PhysicianLayout"));
+const PsychologistLayout = lazy(() => import("./app/layouts/PsychologistLayout"));
+const TrainerLayout = lazy(() => import("./app/layouts/TrainerLayout"));
+const PatientLayout = lazy(() => import("./app/layouts/PatientLayout"));
+const SoldierLayout = lazy(() => import("./app/layouts/SoldierLayout"));
+
 // Commander
 const CommanderOps = lazy(() => import("./app/commander/CommanderOps"));
 const Personnel = lazy(() => import("./app/commander/Personnel"));
@@ -117,31 +125,20 @@ export default function App() {
           }
         />
 
-        {/* Commander — ops, personnel, units */}
+        {/* Commander */}
         <Route
-          path="/app/ops"
           element={
             <ProtectedRoute allowedRoles={["commander", "admin"]}>
-              <CommanderOps />
+              <CommanderLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/app/personnel"
-          element={
-            <ProtectedRoute allowedRoles={["commander", "admin"]}>
-              <Personnel />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/units"
-          element={
-            <ProtectedRoute allowedRoles={["commander", "admin"]}>
-              <Units />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/app/ops" element={<CommanderOps />} />
+          <Route path="/app/personnel" element={<Personnel />} />
+          <Route path="/app/units" element={<Units />} />
+        </Route>
+
+        {/* Alerts — accessible to all authenticated */}
         <Route
           path="/app/alerts"
           element={
@@ -153,133 +150,68 @@ export default function App() {
 
         {/* Physician */}
         <Route
-          path="/app/patients"
           element={
             <ProtectedRoute allowedRoles={["physician", "psychologist", "admin"]}>
-              <PhysicianPatients />
+              <PhysicianLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/app/patient/:id"
-          element={
-            <ProtectedRoute allowedRoles={["physician", "psychologist", "admin"]}>
-              <PatientDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/appointments"
-          element={
-            <ProtectedRoute allowedRoles={["physician", "psychologist", "admin", "patient"]}>
-              <PhysicianAppointments />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/app/patients" element={<PhysicianPatients />} />
+          <Route path="/app/patient/:id" element={<PatientDetail />} />
+          <Route path="/app/appointments" element={<PhysicianAppointments />} />
+        </Route>
 
         {/* Psychologist */}
         <Route
-          path="/app/mood"
-          element={
-            <ProtectedRoute allowedRoles={["psychologist", "patient", "soldier", "admin"]}>
-              <PsychMood />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/stress"
-          element={
-            <ProtectedRoute allowedRoles={["psychologist", "patient", "soldier", "admin"]}>
-              <PsychStress />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/sessions"
           element={
             <ProtectedRoute allowedRoles={["psychologist", "admin"]}>
-              <PsychSessions />
+              <PsychologistLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route path="/app/mood" element={<PsychMood />} />
+          <Route path="/app/stress" element={<PsychStress />} />
+          <Route path="/app/sessions" element={<PsychSessions />} />
+        </Route>
 
         {/* Trainer */}
         <Route
-          path="/app/team"
           element={
             <ProtectedRoute allowedRoles={["trainer", "commander", "admin"]}>
-              <TrainerTeam />
+              <TrainerLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/app/athlete/:id"
-          element={
-            <ProtectedRoute allowedRoles={["trainer", "commander", "admin"]}>
-              <TrainerAthleteDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/programs"
-          element={
-            <ProtectedRoute allowedRoles={["trainer", "admin"]}>
-              <TrainerPrograms />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/acwr"
-          element={
-            <ProtectedRoute allowedRoles={["trainer", "commander", "admin"]}>
-              <TrainerAcwr />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/app/team" element={<TrainerTeam />} />
+          <Route path="/app/athlete/:id" element={<TrainerAthleteDetail />} />
+          <Route path="/app/programs" element={<TrainerPrograms />} />
+          <Route path="/app/acwr" element={<TrainerAcwr />} />
+        </Route>
 
         {/* Patient */}
         <Route
-          path="/app/my-health"
           element={
             <ProtectedRoute allowedRoles={["patient"]}>
-              <PatientHome />
+              <PatientLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/app/medications"
-          element={
-            <ProtectedRoute allowedRoles={["patient"]}>
-              <PatientMedications />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/messages"
-          element={
-            <ProtectedRoute allowedRoles={["patient"]}>
-              <PatientMessages />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/app/my-health" element={<PatientHome />} />
+          <Route path="/app/medications" element={<PatientMedications />} />
+          <Route path="/app/messages" element={<PatientMessages />} />
+        </Route>
 
         {/* Soldier */}
         <Route
-          path="/app/my-readiness"
           element={
             <ProtectedRoute allowedRoles={["soldier"]}>
-              <SoldierStatus />
+              <SoldierLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/app/my-training"
-          element={
-            <ProtectedRoute allowedRoles={["soldier"]}>
-              <SoldierTraining />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/app/my-readiness" element={<SoldierStatus />} />
+          <Route path="/app/my-training" element={<SoldierTraining />} />
+        </Route>
 
         {/* Admin */}
         <Route

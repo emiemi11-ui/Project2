@@ -4,6 +4,8 @@ import {
 } from 'recharts';
 import { RefreshCw, AlertTriangle, Shield, Heart, Moon } from 'lucide-react';
 import { persons, units as unitsList, alerts as rawAlerts } from '../../data/mockData';
+import { motion } from 'framer-motion';
+import { AnimatedSection, AnimatedNumber } from '../../components/AnimatedSection';
 
 /* ── colour tokens ── */
 const GREEN  = '#00E5A0';
@@ -20,7 +22,7 @@ function statusColor(readiness) {
 /* ── KPI Card ── */
 function KpiCard({ icon: Icon, label, value, sub, color }) {
   return (
-    <div className="bg-[#111318] border border-[#1e2028] rounded-lg p-4 flex items-start gap-3 min-w-0">
+    <motion.div whileHover={{ y: -2, scale: 1.02 }} transition={{ duration: 0.2 }} className="bg-[#111318] border border-[#1e2028] rounded-lg p-4 flex items-start gap-3 min-w-0 hover:border-[#2a2d36] transition-colors">
       <div
         className="shrink-0 w-9 h-9 rounded-md flex items-center justify-center"
         style={{ backgroundColor: `${color}18`, color }}
@@ -36,7 +38,7 @@ function KpiCard({ icon: Icon, label, value, sub, color }) {
         </p>
         {sub && <p className="text-[11px] text-[#6b7280] font-mono mt-0.5">{sub}</p>}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -183,6 +185,7 @@ export default function CommanderOps() {
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-[#e5e7eb] font-mono p-4 space-y-4">
       {/* Header bar */}
+      <AnimatedSection>
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-lg font-bold tracking-wide" style={{ color: CYAN }}>
           OPERATIONS OVERVIEW
@@ -209,8 +212,10 @@ export default function CommanderOps() {
           </button>
         </div>
       </div>
+      </AnimatedSection>
 
       {/* KPI row */}
+      <AnimatedSection delay={0.05}>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard icon={Shield} label="Unit Readiness" value={avgReadiness} sub="avg score" color={CYAN} />
         <KpiCard
@@ -223,8 +228,10 @@ export default function CommanderOps() {
         <KpiCard icon={Heart} label="Personnel Fit" value={`${fitPercent}%`} sub="readiness ≥ 60" color={GREEN} />
         <KpiCard icon={Moon} label="Avg Sleep" value={avgSleep} sub="avg score" color={YELLOW} />
       </div>
+      </AnimatedSection>
 
       {/* Main body: heatmap + alerts */}
+      <AnimatedSection delay={0.1}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         {/* Heatmap */}
         <div className="bg-[#111318] border border-[#1e2028] rounded-lg p-4">
@@ -273,8 +280,10 @@ export default function CommanderOps() {
           )}
         </div>
       </div>
+      </AnimatedSection>
 
       {/* Unit comparison bar chart */}
+      <AnimatedSection delay={0.15}>
       <div className="bg-[#111318] border border-[#1e2028] rounded-lg p-4">
         <h2 className="text-xs uppercase tracking-wider text-[#6b7280] mb-3">
           Unit Readiness Comparison
@@ -315,6 +324,7 @@ export default function CommanderOps() {
           </ResponsiveContainer>
         </div>
       </div>
+      </AnimatedSection>
     </div>
   );
 }
