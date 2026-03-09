@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+/* ——————————————————————————————————————————————
+   VitaNova Design Tokens
+   —————————————————————————————————————————————— */
+
+@theme {
+  --color-bg: #03050A;
+  --color-bg-card: #0A0F1A;
+  --color-bg-elevated: #111827;
+  --color-bg-hover: #1A2235;
+
+  --color-text: #E8EEFF;
+  --color-text-muted: #8B95B0;
+  --color-text-dim: #4A5568;
+
+  --color-primary: #00E5A0;
+  --color-primary-hover: #00CC8E;
+  --color-primary-dim: rgba(0, 229, 160, 0.12);
+
+  --color-secondary: #00D4FF;
+  --color-secondary-hover: #00B8E0;
+  --color-secondary-dim: rgba(0, 212, 255, 0.12);
+
+  --color-danger: #FF4D6A;
+  --color-danger-dim: rgba(255, 77, 106, 0.12);
+
+  --color-warning: #FFB020;
+  --color-warning-dim: rgba(255, 176, 32, 0.12);
+
+  --color-success: #00E5A0;
+  --color-success-dim: rgba(0, 229, 160, 0.12);
+
+  --color-border: #1E293B;
+  --color-border-hover: #334155;
+
+  --font-heading: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ——————————————————————————————————————————————
+   Base Styles
+   —————————————————————————————————————————————— */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
+}
+
+/* ——————————————————————————————————————————————
+   Custom Scrollbar
+   —————————————————————————————————————————————— */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) var(--color-bg);
+}
+
+/* ——————————————————————————————————————————————
+   Selection
+   —————————————————————————————————————————————— */
+
+::selection {
+  background-color: var(--color-primary-dim);
+  color: var(--color-primary);
+}
+
+/* ——————————————————————————————————————————————
+   Focus Styles
+   —————————————————————————————————————————————— */
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ——————————————————————————————————————————————
+   Utility Classes
+   —————————————————————————————————————————————— */
+
+.glass {
+  background: rgba(10, 15, 26, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+}
+
+.glow-primary {
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.15),
+              0 0 60px rgba(0, 229, 160, 0.05);
+}
+
+.glow-secondary {
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.15),
+              0 0 60px rgba(0, 212, 255, 0.05);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-border {
+  border: 1px solid transparent;
+  background-image: linear-gradient(var(--color-bg-card), var(--color-bg-card)),
+                    linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}

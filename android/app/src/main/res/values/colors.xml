@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="vitanova_primary">#00E5A0</color>
+    <color name="vitanova_secondary">#00D4FF</color>
+    <color name="vitanova_background">#03050A</color>
+    <color name="vitanova_surface">#0A0F1A</color>
+    <color name="vitanova_text">#E8EEFF</color>
+    <color name="vitanova_error">#FF4757</color>
+    <color name="vitanova_warning">#FFA502</color>
+</resources>

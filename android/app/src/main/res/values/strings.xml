@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VitaNova</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_sleep">Sleep</string>
+    <string name="nav_energy">Energy</string>
+    <string name="nav_fitness">Fitness</string>
+    <string name="nav_profile">Profile</string>
+    <string name="sleep_tracking_notification">VitaNova monitorizează somnul</string>
+    <string name="fitness_tracking_notification">VitaNova înregistrează activitatea</string>
+    <string name="permission_camera_rationale">VitaNova folosește camera și flash-ul pentru a-ți măsura pulsul și variabilitatea cardiacă (HRV). Pune degetul pe cameră.</string>
+    <string name="permission_location_rationale">VitaNova folosește GPS-ul pentru a înregistra traseul activităților sportive (alergare, ciclism).</string>
+    <string name="permission_sensors_rationale">VitaNova folosește senzorii de mișcare pentru a monitoriza somnul și a număra pașii automat.</string>
+    <string name="permission_usage_rationale">VitaNova analizează cât timp petreci pe fiecare aplicație pentru a-ți calcula scorul de focus digital.</string>
+    <string name="permission_notifications_rationale">VitaNova te notifică pentru alarma inteligentă, remindere de hidratare și alerte importante.</string>
+    <string name="medical_disclaimer">Datele oferite sunt orientative și nu înlocuiesc consultul medical. VitaNova folosește senzori de smartphone care au limitări față de echipamente medicale profesionale.</string>
+</resources>
