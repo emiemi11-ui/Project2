@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { persons, accounts } from "../../data/mockData";
+import { motion } from "framer-motion";
+import { AnimatedSection } from "../../components/AnimatedSection";
 
 /* ——————————————————————————————————————————————
    Admin Users — CRUD table with dark theme
@@ -206,6 +208,7 @@ export default function AdminUsers() {
   return (
     <div className="min-h-screen bg-[#0A0F1A] text-white p-6">
       {/* Header */}
+      <AnimatedSection>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">User Management</h1>
@@ -220,8 +223,10 @@ export default function AdminUsers() {
           </button>
         </div>
       </div>
+      </AnimatedSection>
 
       {/* Filters */}
+      <AnimatedSection delay={0.05}>
       <div className="flex items-center gap-4 mb-6">
         <div className="relative flex-1 max-w-sm">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,8 +259,10 @@ export default function AdminUsers() {
           ))}
         </select>
       </div>
+      </AnimatedSection>
 
       {/* Table */}
+      <AnimatedSection delay={0.1}>
       <div className="bg-[#111827] border border-gray-800 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -350,6 +357,7 @@ export default function AdminUsers() {
           </div>
         </div>
       </div>
+      </AnimatedSection>
 
       {/* Add User Modal */}
       <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="Add New User">

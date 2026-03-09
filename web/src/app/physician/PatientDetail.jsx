@@ -17,6 +17,8 @@ import {
   Legend,
 } from "recharts";
 import { persons, alerts, appointments } from "../../data/mockData";
+import { motion } from "framer-motion";
+import { AnimatedSection } from "../../components/AnimatedSection";
 
 /* ——————————————————————————————————————————————
    Helper: generate extended 30-day history
@@ -268,7 +270,12 @@ export default function PatientDetail() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
-      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-7xl mx-auto px-6 py-6 space-y-6"
+      >
         {/* Back button */}
         <button
           onClick={() => navigate(-1)}
@@ -738,7 +745,7 @@ export default function PatientDetail() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

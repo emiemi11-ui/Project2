@@ -4,6 +4,8 @@ import {
 } from 'recharts';
 import { Search, Download, ChevronDown, ChevronRight, Users } from 'lucide-react';
 import { persons } from '../../data/mockData';
+import { motion } from 'framer-motion';
+import { AnimatedSection } from '../../components/AnimatedSection';
 
 /* ── colour tokens ── */
 const GREEN  = '#00E5A0';
@@ -241,6 +243,7 @@ export default function Personnel() {
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-[#e5e7eb] font-mono p-4 space-y-4">
       {/* Header */}
+      <AnimatedSection>
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-lg font-bold tracking-wide" style={{ color: CYAN }}>
           PERSONNEL
@@ -277,13 +280,17 @@ export default function Personnel() {
           </button>
         </div>
       </div>
+      </AnimatedSection>
 
       {/* Count */}
+      <AnimatedSection delay={0.05}>
       <p className="text-[11px] text-[#6b7280] font-mono">
         Showing {filtered.length} of {persons.length} personnel
       </p>
+      </AnimatedSection>
 
       {/* Table */}
+      <AnimatedSection delay={0.1}>
       <div className="bg-[#111318] border border-[#1e2028] rounded-lg overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -325,6 +332,7 @@ export default function Personnel() {
           )}
         </table>
       </div>
+      </AnimatedSection>
     </div>
   );
 }

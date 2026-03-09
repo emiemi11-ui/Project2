@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
 import { AlertTriangle, Bell, Info, Filter, Check, X } from 'lucide-react';
 import { persons, alerts as staticAlerts } from '../../data/mockData';
+import { motion } from 'framer-motion';
+import { AnimatedSection } from '../../components/AnimatedSection';
 
 /* ── colour tokens ── */
 const GREEN  = '#00E5A0';
@@ -165,7 +167,10 @@ function formatTimestamp(ts) {
 function AlertRow({ alert, onAcknowledge }) {
   const acked = alert.acknowledged;
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      whileHover={!acked ? { x: 4 } : {}}
       className={`flex items-start gap-3 px-4 py-3 border-b border-[#1e2028] last:border-0 transition-colors ${
         acked ? 'opacity-50' : 'hover:bg-[#15161c]'
       }`}
@@ -211,7 +216,7 @@ function AlertRow({ alert, onAcknowledge }) {
           <Check size={11} /> Acked
         </span>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -251,6 +256,7 @@ export default function Alerts() {
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-[#e5e7eb] font-mono p-4 space-y-4">
       {/* Header */}
+      <AnimatedSection>
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-lg font-bold tracking-wide" style={{ color: CYAN }}>
           ALERTS
@@ -268,8 +274,10 @@ export default function Alerts() {
           </span>
         </div>
       </div>
+      </AnimatedSection>
 
       {/* Filters bar */}
+      <AnimatedSection delay={0.05}>
       <div className="flex items-center gap-2 flex-wrap">
         <Filter size={13} className="text-[#6b7280]" />
 
@@ -320,8 +328,10 @@ export default function Alerts() {
           </button>
         )}
       </div>
+      </AnimatedSection>
 
       {/* Alert list */}
+      <AnimatedSection delay={0.1}>
       <div className="bg-[#111318] border border-[#1e2028] rounded-lg">
         {filtered.length === 0 ? (
           <div className="px-4 py-8 text-center">
@@ -333,6 +343,7 @@ export default function Alerts() {
           ))
         )}
       </div>
+      </AnimatedSection>
 
       {/* Count footer */}
       <p className="text-[10px] text-[#6b7280] font-mono text-right">

@@ -4,6 +4,8 @@ import {
   BarChart, Bar, Cell, Legend,
 } from "recharts";
 import { persons, moodEntries } from "../../data/mockData";
+import { motion } from "framer-motion";
+import { AnimatedSection } from "../../components/AnimatedSection";
 
 /* ——————————————————————————————————————————————
    Theme tokens
@@ -131,6 +133,7 @@ export default function PsychMood() {
   return (
     <div className="min-h-screen p-6 space-y-8" style={{ backgroundColor: bg, color: text }}>
       {/* Header */}
+      <AnimatedSection>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold" style={{ color: accent }}>
@@ -166,8 +169,10 @@ export default function PsychMood() {
           </select>
         </div>
       </div>
+      </AnimatedSection>
 
       {/* Row 1: Heatmap */}
+      <AnimatedSection delay={0.05}>
       <div className="rounded-2xl p-6" style={{ backgroundColor: cardBg }}>
         <h2 className="text-lg font-semibold mb-4" style={{ color: accent }}>
           Group Mood Heatmap
@@ -208,8 +213,10 @@ export default function PsychMood() {
           </div>
         </div>
       </div>
+      </AnimatedSection>
 
       {/* Row 2: Trend + Distribution */}
+      <AnimatedSection delay={0.1}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Average mood trend */}
         <div className="rounded-2xl p-6" style={{ backgroundColor: cardBg }}>
@@ -259,8 +266,10 @@ export default function PsychMood() {
           </ResponsiveContainer>
         </div>
       </div>
+      </AnimatedSection>
 
       {/* Row 3: Patients needing attention */}
+      <AnimatedSection delay={0.15}>
       <div className="rounded-2xl p-6" style={{ backgroundColor: cardBg }}>
         <h2 className="text-lg font-semibold mb-4" style={{ color: accent }}>
           Patients Needing Attention
@@ -280,8 +289,10 @@ export default function PsychMood() {
                 .filter((e) => e.personId === p.id)
                 .sort((a, b) => b.date.localeCompare(a.date))[0];
               return (
-                <div
+                <motion.div
                   key={p.id}
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  transition={{ duration: 0.2 }}
                   className="rounded-xl p-4 border transition-colors"
                   style={{ backgroundColor: bg, borderColor: "#EF444440" }}
                 >
@@ -316,12 +327,13 @@ export default function PsychMood() {
                       &ldquo;{latest.note}&rdquo;
                     </p>
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </div>
         )}
       </div>
+      </AnimatedSection>
     </div>
   );
 }

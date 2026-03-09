@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { appointments as mockAppts } from "../../data/mockData";
+import { AnimatedSection, StaggerContainer, StaggerItem, AnimatedNumber } from "../../components/AnimatedSection";
+import { motion } from "framer-motion";
 
-const appointments = [
+const localAppointments = [
   { id: 1, date: "2026-03-10", time: "08:30", patient: "Sofia Ramirez", patientId: "person-012", reason: "Control periodic", status: "upcoming" },
   { id: 2, date: "2026-03-10", time: "10:00", patient: "Liam O'Brien", patientId: "person-011", reason: "Evaluare post-accidentare", status: "upcoming" },
   { id: 3, date: "2026-03-10", time: "11:30", patient: "Tyler Brooks", patientId: "person-008", reason: "Revizuire tratament", status: "upcoming" },
@@ -16,131 +18,197 @@ const appointments = [
 ];
 
 const statusStyles = {
-  upcoming: { bg: "bg-blue-50", text: "text-blue-600", border: "border-blue-200", label: "Programat" },
-  completed: { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-200", label: "Finalizat" },
-  cancelled: { bg: "bg-red-50", text: "text-red-600", border: "border-red-200", label: "Anulat" },
+  upcoming: { bg: "bg-blue-50", text: "text-blue-600", border: "border-blue-200", label: "Programat", dot: "bg-blue-500" },
+  completed: { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-200", label: "Finalizat", dot: "bg-emerald-500" },
+  cancelled: { bg: "bg-red-50", text: "text-red-600", border: "border-red-200", label: "Anulat", dot: "bg-red-500" },
 };
+
+function MiniCalendar({ appointments }) {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
+  const apptDates = {};
+  appointments.forEach((a) => {
+    const day = parseInt(a.date.split("-")[2]);
+    if (!apptDates[day]) apptDates[day] = [];
+    apptDates[day].push(a.status);
+  });
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+      <div className="text-sm font-semibold text-gray-700 mb-3 text-center">
+        {today.toLocaleDateString("ro-RO", { month: "long", year: "numeric" })}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {["L", "Ma", "Mi", "J", "V", "S", "D"].map((d) => (
+          <div key={d} className="text-center text-[9px] text-gray-400 font-medium py-0.5">{d}</div>
+        ))}
+        {Array.from({ length: firstDay }).map((_, i) => <div key={`p-${i}`} />)}
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1;
+          const isToday = day === today.getDate();
+          const appts = apptDates[day];
+          return (
+            <div
+              key={day}
+              className={`relative aspect-square rounded flex items-center justify-center text-[10px] font-medium ${
+                isToday ? "bg-blue-100 text-blue-600 font-bold" :
+                appts ? "bg-blue-50 text-blue-700" : "text-gray-400"
+              }`}
+            >
+              {day}
+              {appts && (
+                <div className="absolute bottom-0.5 flex gap-0.5">
+                  {appts.slice(0, 3).map((s, j) => (
+                    <div key={j} className={`w-1 h-1 rounded-full ${statusStyles[s]?.dot || "bg-gray-400"}`} />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function PhysicianAppointments() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const [filter, setFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
 
-  const filtered = appointments.filter((a) => {
+  const filtered = localAppointments.filter((a) => {
     if (filter !== "all" && a.status !== filter) return false;
     if (dateFilter && a.date !== dateFilter) return false;
     return true;
   });
 
+  const stats = useMemo(() => ({
+    total: localAppointments.length,
+    upcoming: localAppointments.filter((a) => a.status === "upcoming").length,
+    completed: localAppointments.filter((a) => a.status === "completed").length,
+    todayCount: localAppointments.filter((a) => a.date === new Date().toISOString().split("T")[0]).length,
+  }), []);
+
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
-      {/* Sidebar */}
-      <div className="flex">
-        <aside className="w-60 bg-white border-r border-gray-200 flex flex-col p-4 min-h-screen hidden lg:flex">
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center font-bold text-white text-sm">V</div>
-            <span className="font-bold text-lg text-gray-800 tracking-tight">Vita<span className="text-blue-600">Nova</span></span>
-          </div>
-          <nav className="flex-1 space-y-1">
-            {[
-              { label: "Patients", path: "/app/patients" },
-              { label: "Appointments", path: "/app/appointments", active: true },
-              { label: "Alerts", path: "/app/alerts" },
-            ].map((item) => (
-              <button
-                key={item.label}
-                onClick={() => navigate(item.path)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                  item.active ? "bg-blue-50 text-blue-600 font-medium" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
-          <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition-colors px-3 py-2">Logout</button>
-        </aside>
-
-        <main className="flex-1 p-6 overflow-auto">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">Programari</h1>
-
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3 mb-6">
-            {["all", "upcoming", "completed", "cancelled"].map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
-                  filter === f
-                    ? "bg-blue-50 text-blue-600 border-blue-200"
-                    : "bg-white text-gray-500 border-gray-200 hover:text-gray-700"
-                }`}
-              >
-                {f === "all" ? "Toate" : statusStyles[f]?.label}
-              </button>
-            ))}
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="ml-auto px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 bg-white"
-            />
-            {dateFilter && (
-              <button onClick={() => setDateFilter("")} className="text-xs text-gray-400 hover:text-gray-600">Clear</button>
-            )}
-          </div>
-
-          {/* Table */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-5 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Data</th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Ora</th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Pacient</th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Motiv</th>
-                    <th className="text-center px-4 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((apt) => {
-                    const st = statusStyles[apt.status];
-                    return (
-                      <tr key={apt.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                        <td className="px-5 py-3 text-sm text-gray-700 font-medium">{apt.date}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{apt.time}</td>
-                        <td className="px-4 py-3">
-                          <button
-                            onClick={() => navigate(`/app/patient/${apt.patientId}`)}
-                            className="text-sm font-medium text-blue-600 hover:underline"
-                          >
-                            {apt.patient}
-                          </button>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">{apt.reason}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${st.bg} ${st.text} border ${st.border}`}>
-                            {st.label}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-5 py-12 text-center text-gray-400 text-sm">
-                        Nicio programare gasita cu filtrele selectate.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+    <main className="p-4 sm:p-6 overflow-auto">
+      <AnimatedSection>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Programari</h1>
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <div className="text-xl font-bold text-blue-600"><AnimatedNumber value={stats.upcoming} /></div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider">Viitoare</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-emerald-600"><AnimatedNumber value={stats.completed} /></div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider">Finalizate</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-gray-800"><AnimatedNumber value={stats.todayCount} /></div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider">Azi</div>
             </div>
           </div>
-        </main>
+        </div>
+      </AnimatedSection>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Mini Calendar */}
+        <AnimatedSection delay={0.05} className="lg:col-span-1">
+          <MiniCalendar appointments={localAppointments} />
+        </AnimatedSection>
+
+        <div className="lg:col-span-3">
+          {/* Filters */}
+          <AnimatedSection delay={0.1}>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
+              {["all", "upcoming", "completed", "cancelled"].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all border ${
+                    filter === f
+                      ? "bg-blue-50 text-blue-600 border-blue-200"
+                      : "bg-white text-gray-500 border-gray-200 hover:text-gray-700"
+                  }`}
+                >
+                  {f === "all" ? "Toate" : statusStyles[f]?.label}
+                </button>
+              ))}
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="ml-auto px-3 py-1.5 rounded-lg border border-gray-200 text-xs sm:text-sm text-gray-600 bg-white"
+              />
+              {dateFilter && (
+                <button onClick={() => setDateFilter("")} className="text-xs text-gray-400 hover:text-gray-600">Clear</button>
+              )}
+            </div>
+          </AnimatedSection>
+
+          {/* Table */}
+          <AnimatedSection delay={0.15}>
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[550px]">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="text-left px-4 sm:px-5 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Data</th>
+                      <th className="text-left px-3 sm:px-4 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Ora</th>
+                      <th className="text-left px-3 sm:px-4 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Pacient</th>
+                      <th className="text-left px-3 sm:px-4 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Motiv</th>
+                      <th className="text-center px-3 sm:px-4 py-3 text-xs text-gray-500 uppercase tracking-wider font-semibold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((apt, i) => {
+                      const st = statusStyles[apt.status];
+                      return (
+                        <motion.tr
+                          key={apt.id}
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 + i * 0.03 }}
+                          className="border-b border-gray-100 hover:bg-blue-50/30 transition-colors"
+                        >
+                          <td className="px-4 sm:px-5 py-3 text-xs sm:text-sm text-gray-700 font-medium">{apt.date}</td>
+                          <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-600">{apt.time}</td>
+                          <td className="px-3 sm:px-4 py-3">
+                            <button
+                              onClick={() => navigate(`/app/patient/${apt.patientId}`)}
+                              className="text-xs sm:text-sm font-medium text-blue-600 hover:underline"
+                            >
+                              {apt.patient}
+                            </button>
+                          </td>
+                          <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500">{apt.reason}</td>
+                          <td className="px-3 sm:px-4 py-3 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${st.bg} ${st.text} border ${st.border}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                              {st.label}
+                            </span>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                    {filtered.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-5 py-12 text-center text-gray-400 text-sm">
+                          <div className="text-3xl mb-2">📋</div>
+                          Nicio programare gasita cu filtrele selectate.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </AnimatedSection>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

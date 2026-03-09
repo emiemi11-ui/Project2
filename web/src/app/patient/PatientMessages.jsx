@@ -1,6 +1,18 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { AnimatedSection, StaggerContainer, StaggerItem } from "../../components/AnimatedSection";
+import { motion, AnimatePresence } from "framer-motion";
+
+const roleColors = {
+  Medic: { bg: "bg-blue-100", text: "text-blue-600", border: "border-blue-200" },
+  Psiholog: { bg: "bg-purple-100", text: "text-purple-600", border: "border-purple-200" },
+  Antrenor: { bg: "bg-orange-100", text: "text-orange-600", border: "border-orange-200" },
+};
+
+function timeAgo(timestamp) {
+  if (timestamp.startsWith("Azi")) return timestamp;
+  if (timestamp.startsWith("Ieri")) return timestamp;
+  return timestamp;
+}
 
 const conversations = [
   {
@@ -17,6 +29,7 @@ const conversations = [
       { sender: "doctor", text: "Rezultatele analizelor arata bine. Valorile sunt in parametri normali. Continuam cu tratamentul curent.", time: "Azi, 09:15" },
       { sender: "patient", text: "Multumesc mult, doctore! Ma simt mai linistita acum.", time: "Azi, 09:20" },
     ],
+    contextVitals: { hr: 72, bp: "120/78", spo2: 98 },
   },
   {
     id: 2,
@@ -31,6 +44,7 @@ const conversations = [
       { sender: "doctor", text: "Am observat ca nivelul de stres a crescut putin. Vrei sa discutam despre asta?", time: "Ieri, 16:28" },
       { sender: "doctor", text: "Cum te-ai simtit in ultima saptamana? Am observat cateva schimbari in datele tale.", time: "Ieri, 16:30" },
     ],
+    contextVitals: { hr: 78, bp: "125/82", stress: 45 },
   },
   {
     id: 3,
@@ -45,113 +59,155 @@ const conversations = [
       { sender: "doctor", text: "Am actualizat programul tau de recuperare. Ia-o usor cu exercitiile de maine.", time: "05 Mar, 11:00" },
       { sender: "patient", text: "Am inteles, multumesc! Voi face doar exercitiile usoare.", time: "05 Mar, 11:15" },
     ],
+    contextVitals: null,
   },
 ];
 
 export default function PatientMessages() {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
   const [selectedConv, setSelectedConv] = useState(null);
+  const [replyText, setReplyText] = useState("");
+
+  const unreadCount = conversations.filter((c) => c.unread).length;
 
   return (
-    <div className="min-h-screen bg-[#fafbfc]">
-      {/* Top Nav */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center font-bold text-white text-sm">V</div>
-            <span className="font-bold text-gray-800">VitaNova</span>
-          </div>
-          <div className="flex items-center gap-4">
-            {[
-              { label: "Acasa", path: "/app/my-health" },
-              { label: "Medicamente", path: "/app/medications" },
-              { label: "Mesaje", path: "/app/messages", active: true },
-            ].map((item) => (
-              <button
-                key={item.label}
-                onClick={() => navigate(item.path)}
-                className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                  item.active ? "bg-blue-50 text-blue-600 font-medium" : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-            <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 ml-2">Logout</button>
-          </div>
+    <main className="max-w-4xl mx-auto p-4 sm:p-6">
+      <AnimatedSection>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Mesaje</h1>
+          {unreadCount > 0 && (
+            <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-semibold">
+              {unreadCount} necitite
+            </span>
+          )}
         </div>
-      </nav>
+      </AnimatedSection>
 
-      <main className="max-w-4xl mx-auto p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Mesaje</h1>
+      {conversations.length === 0 && (
+        <AnimatedSection>
+          <div className="text-center py-16 text-gray-400">
+            <div className="text-4xl mb-4">💬</div>
+            <p className="text-lg font-medium">Niciun mesaj</p>
+            <p className="text-sm mt-1">Mesajele de la specialisti vor aparea aici</p>
+          </div>
+        </AnimatedSection>
+      )}
 
+      <AnimatedSection delay={0.1}>
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          {/* Conversation List */}
-          <div className="divide-y divide-gray-100">
-            {conversations.map((conv) => (
-              <div key={conv.id}>
-                <button
-                  onClick={() => setSelectedConv(selectedConv === conv.id ? null : conv.id)}
-                  className="w-full text-left p-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                      conv.unread ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"
-                    }`}>
-                      {conv.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm font-semibold ${conv.unread ? "text-gray-800" : "text-gray-600"}`}>
-                            {conv.from}
-                          </span>
-                          <span className="text-xs text-gray-400">({conv.role})</span>
-                          {conv.unread && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+          <StaggerContainer className="divide-y divide-gray-100">
+            {conversations.map((conv) => {
+              const colors = roleColors[conv.role] || roleColors.Medic;
+              const isSelected = selectedConv === conv.id;
+              return (
+                <StaggerItem key={conv.id}>
+                  <div>
+                    <motion.button
+                      onClick={() => setSelectedConv(isSelected ? null : conv.id)}
+                      whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
+                      className="w-full text-left p-3 sm:p-4 transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${colors.bg} ${colors.text}`}>
+                          {conv.avatar}
                         </div>
-                        <span className="text-xs text-gray-400">{conv.timestamp}</span>
-                      </div>
-                      <p className={`text-sm mt-1 truncate ${conv.unread ? "text-gray-700" : "text-gray-400"}`}>
-                        {conv.lastMessage}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Expanded Messages */}
-                {selectedConv === conv.id && (
-                  <div className="px-4 pb-4 bg-gray-50 border-t border-gray-100">
-                    <div className="space-y-3 py-4 max-h-80 overflow-y-auto">
-                      {conv.messages.map((msg, i) => (
-                        <div key={i} className={`flex ${msg.sender === "patient" ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
-                            msg.sender === "patient"
-                              ? "bg-blue-500 text-white"
-                              : "bg-white border border-gray-200 text-gray-700"
-                          }`}>
-                            <p className="text-sm">{msg.text}</p>
-                            <p className={`text-[10px] mt-1 ${msg.sender === "patient" ? "text-blue-200" : "text-gray-400"}`}>
-                              {msg.time}
-                            </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm font-semibold ${conv.unread ? "text-gray-800" : "text-gray-500"}`}>
+                                {conv.from}
+                              </span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${colors.bg} ${colors.text}`}>{conv.role}</span>
+                              {conv.unread && (
+                                <motion.div
+                                  animate={{ scale: [1, 1.2, 1] }}
+                                  transition={{ repeat: Infinity, duration: 2 }}
+                                  className="w-2 h-2 rounded-full bg-blue-500"
+                                />
+                              )}
+                            </div>
+                            <span className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap ml-2">{timeAgo(conv.timestamp)}</span>
                           </div>
+                          <p className={`text-xs sm:text-sm mt-1 truncate ${conv.unread ? "text-gray-700 font-medium" : "text-gray-400"}`}>
+                            {conv.lastMessage}
+                          </p>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
+                      </div>
+                    </motion.button>
 
-      {/* Emergency Button */}
-      <button className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 flex items-center justify-center transition-all hover:scale-110 z-50">
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      </button>
-    </div>
+                    <AnimatePresence>
+                      {isSelected && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-3 sm:px-4 pb-4 bg-gray-50 border-t border-gray-100">
+                            {/* Context Vitals */}
+                            {conv.contextVitals && (
+                              <div className="flex items-center gap-3 py-3 border-b border-gray-100 mb-3">
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider">Vitals la moment:</span>
+                                {conv.contextVitals.hr && <span className="text-xs text-rose-500">❤️ {conv.contextVitals.hr} BPM</span>}
+                                {conv.contextVitals.bp && <span className="text-xs text-blue-500">💉 {conv.contextVitals.bp}</span>}
+                                {conv.contextVitals.spo2 && <span className="text-xs text-cyan-500">🫁 {conv.contextVitals.spo2}%</span>}
+                                {conv.contextVitals.stress && <span className="text-xs text-amber-500">Stres: {conv.contextVitals.stress}</span>}
+                              </div>
+                            )}
+
+                            {/* Messages */}
+                            <div className="space-y-2.5 py-2 max-h-72 overflow-y-auto">
+                              {conv.messages.map((msg, i) => (
+                                <motion.div
+                                  key={i}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: i * 0.05 }}
+                                  className={`flex ${msg.sender === "patient" ? "justify-end" : "justify-start"}`}
+                                >
+                                  <div className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3.5 py-2.5 ${
+                                    msg.sender === "patient"
+                                      ? "bg-blue-500 text-white"
+                                      : "bg-white border border-gray-200 text-gray-700"
+                                  }`}>
+                                    <p className="text-sm">{msg.text}</p>
+                                    <p className={`text-[10px] mt-1 ${msg.sender === "patient" ? "text-blue-200" : "text-gray-400"}`}>
+                                      {msg.time}
+                                    </p>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </div>
+
+                            {/* Reply */}
+                            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                              <input
+                                type="text"
+                                placeholder="Scrie un mesaj..."
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                className="flex-1 px-3 py-2 rounded-xl bg-white border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300"
+                              />
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors"
+                                onClick={() => setReplyText("")}
+                              >
+                                Trimite
+                              </motion.button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </StaggerItem>
+              );
+            })}
+          </StaggerContainer>
+        </div>
+      </AnimatedSection>
+    </main>
   );
 }
