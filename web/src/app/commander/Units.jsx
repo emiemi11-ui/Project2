@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, Tooltip, Legend,
 } from 'recharts';
 import { Users, AlertTriangle, ChevronRight } from 'lucide-react';
-import { persons, units as unitsList } from '../data/mockData';
+import { persons, units as unitsList } from '../../data/mockData';
 
 /* ── colour tokens ── */
 const GREEN  = '#00E5A0';

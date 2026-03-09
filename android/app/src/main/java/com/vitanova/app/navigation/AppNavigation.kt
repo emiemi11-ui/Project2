@@ -37,13 +37,35 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vitanova.app.ui.brain.BrainScreen
+import com.vitanova.app.ui.brain.CognitiveTestScreen
 import com.vitanova.app.ui.energy.EnergyScreen
 import com.vitanova.app.ui.energy.EnergyViewModel
 import com.vitanova.app.ui.energy.HrvMeasureScreen
+import com.vitanova.app.ui.fitness.ActiveTrackingScreen
+import com.vitanova.app.ui.fitness.FitnessScreen
+import com.vitanova.app.ui.fitness.FitnessViewModel
+import com.vitanova.app.ui.fitness.StretchingScreen
+import com.vitanova.app.ui.fitness.WorkoutScreen
+import com.vitanova.app.ui.focus.DetoxScreen
+import com.vitanova.app.ui.focus.FocusScreen
+import com.vitanova.app.ui.focus.FocusTimerScreen
+import com.vitanova.app.ui.habits.HabitsScreen
+import com.vitanova.app.ui.home.HomeScreen
+import com.vitanova.app.ui.nutrition.AddMealScreen
+import com.vitanova.app.ui.nutrition.NutritionScreen
+import com.vitanova.app.ui.onboarding.FirstDayScreen
+import com.vitanova.app.ui.onboarding.ProfileSetupScreen
+import com.vitanova.app.ui.onboarding.WelcomeScreen
+import com.vitanova.app.ui.profile.PrivacyControlScreen
+import com.vitanova.app.ui.profile.ProfileScreen
+import com.vitanova.app.ui.sleep.SleepScreen
+import com.vitanova.app.ui.sleep.SleepTrackingScreen
+import com.vitanova.app.ui.sleep.SleepViewModel
+import com.vitanova.app.ui.sleep.SmartAlarmScreen
 import com.vitanova.app.ui.theme.VitaBackground
 import com.vitanova.app.ui.theme.VitaGreen
 import com.vitanova.app.ui.theme.VitaSurface
-import com.vitanova.app.ui.theme.VitaTextSecondary
 import com.vitanova.app.ui.theme.VitaTextTertiary
 
 // ── Route definitions ────────────────────────────────────────────────────────
@@ -136,7 +158,7 @@ val bottomNavItems = listOf(
     )
 )
 
-// Screens where the bottom bar should be hidden (immersive / tracking screens)
+// Screens where the bottom bar should be hidden
 private val hideBottomBarRoutes = setOf(
     Route.SleepTracking.path,
     Route.SmartAlarm.path,
@@ -185,11 +207,45 @@ fun AppNavigation(
         ) {
             // ── Main tabs ────────────────────────────────────────────────
             composable(Route.Home.path) {
-                PlaceholderScreen("Home")
+                HomeScreen(
+                    onNavigateToHrvMeasure = {
+                        navController.navigate(Route.HrvMeasure.path)
+                    },
+                    onNavigateToFocusTimer = {
+                        navController.navigate(Route.FocusTimer.path)
+                    },
+                    onNavigateToWorkout = {
+                        navController.navigate(Route.Workout.path)
+                    },
+                    onNavigateToHabits = {
+                        navController.navigate(Route.Habits.path)
+                    },
+                    onNavigateToSleep = {
+                        navController.navigate(Route.Sleep.path)
+                    },
+                    onNavigateToEnergy = {
+                        navController.navigate(Route.Energy.path)
+                    },
+                    onNavigateToFocus = {
+                        navController.navigate(Route.Focus.path)
+                    },
+                    onNavigateToFitness = {
+                        navController.navigate(Route.Fitness.path)
+                    }
+                )
             }
 
             composable(Route.Sleep.path) {
-                PlaceholderScreen("Sleep")
+                val sleepViewModel: SleepViewModel = viewModel()
+                SleepScreen(
+                    viewModel = sleepViewModel,
+                    onNavigateToTracking = {
+                        navController.navigate(Route.SleepTracking.path)
+                    },
+                    onNavigateToSmartAlarm = {
+                        navController.navigate(Route.SmartAlarm.path)
+                    }
+                )
             }
 
             composable(Route.Energy.path) {
@@ -204,20 +260,52 @@ fun AppNavigation(
             }
 
             composable(Route.Fitness.path) {
-                PlaceholderScreen("Fitness")
+                val fitnessViewModel: FitnessViewModel = viewModel()
+                FitnessScreen(
+                    viewModel = fitnessViewModel,
+                    onNavigateToActiveTracking = { _ ->
+                        navController.navigate(Route.ActiveTracking.path)
+                    },
+                    onNavigateToWorkout = {
+                        navController.navigate(Route.Workout.path)
+                    },
+                    onNavigateToStretching = {
+                        navController.navigate(Route.Stretching.path)
+                    }
+                )
             }
 
             composable(Route.Profile.path) {
-                PlaceholderScreen("Profile")
+                ProfileScreen(
+                    onNavigateToPrivacyControl = {
+                        navController.navigate(Route.PrivacyControl.path)
+                    },
+                    onNavigateToWelcome = {
+                        navController.navigate(Route.Welcome.path) {
+                            popUpTo(Route.Home.path) { inclusive = true }
+                        }
+                    }
+                )
             }
 
-            // ── Sleep ────────────────────────────────────────────────────
+            // ── Sleep sub ──────────────────────────────────────────────────
             composable(Route.SleepTracking.path) {
-                PlaceholderScreen("Sleep Tracking")
+                val sleepViewModel: SleepViewModel = viewModel()
+                SleepTrackingScreen(
+                    viewModel = sleepViewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToSmartAlarm = {
+                        navController.navigate(Route.SmartAlarm.path)
+                    }
+                )
             }
 
             composable(Route.SmartAlarm.path) {
-                PlaceholderScreen("Smart Alarm")
+                val sleepViewModel: SleepViewModel = viewModel()
+                SmartAlarmScreen(
+                    viewModel = sleepViewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             // ── Energy ───────────────────────────────────────────────────
@@ -236,69 +324,125 @@ fun AppNavigation(
 
             // ── Focus ────────────────────────────────────────────────────
             composable(Route.Focus.path) {
-                PlaceholderScreen("Focus")
+                FocusScreen(
+                    onNavigateToTimer = {
+                        navController.navigate(Route.FocusTimer.path)
+                    },
+                    onNavigateToDetox = {
+                        navController.navigate(Route.Detox.path)
+                    }
+                )
             }
 
             composable(Route.FocusTimer.path) {
-                PlaceholderScreen("Focus Timer")
+                FocusTimerScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             composable(Route.Detox.path) {
-                PlaceholderScreen("Digital Detox")
+                DetoxScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
-            // ── Fitness ──────────────────────────────────────────────────
+            // ── Fitness sub ────────────────────────────────────────────────
             composable(Route.ActiveTracking.path) {
-                PlaceholderScreen("Active Tracking")
+                val fitnessViewModel: FitnessViewModel = viewModel()
+                ActiveTrackingScreen(
+                    viewModel = fitnessViewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             composable(Route.Workout.path) {
-                PlaceholderScreen("Workout")
+                WorkoutScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             composable(Route.Stretching.path) {
-                PlaceholderScreen("Stretching")
+                StretchingScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             // ── Nutrition ────────────────────────────────────────────────
             composable(Route.Nutrition.path) {
-                PlaceholderScreen("Nutrition")
+                NutritionScreen(
+                    onNavigateToAddMeal = {
+                        navController.navigate(Route.AddMeal.path)
+                    }
+                )
             }
 
             composable(Route.AddMeal.path) {
-                PlaceholderScreen("Add Meal")
+                AddMealScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onSaveMeal = { }
+                )
             }
 
             // ── Brain ────────────────────────────────────────────────────
             composable(Route.Brain.path) {
-                PlaceholderScreen("Brain")
+                BrainScreen(
+                    onNavigateToTest = {
+                        navController.navigate(Route.CognitiveTest.path)
+                    },
+                    onStartQuickTest = {
+                        navController.navigate(Route.CognitiveTest.path)
+                    }
+                )
             }
 
             composable(Route.CognitiveTest.path) {
-                PlaceholderScreen("Cognitive Test")
+                CognitiveTestScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             // ── Habits ───────────────────────────────────────────────────
             composable(Route.Habits.path) {
-                PlaceholderScreen("Habits")
+                HabitsScreen()
             }
 
-            // ── Profile sub-screens ──────────────────────────────────────
+            // ── Profile sub ──────────────────────────────────────────────
             composable(Route.PrivacyControl.path) {
-                PlaceholderScreen("Privacy Control")
+                PrivacyControlScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             // ── Onboarding ───────────────────────────────────────────────
             composable(Route.Welcome.path) {
-                PlaceholderScreen("Welcome")
+                WelcomeScreen(
+                    onNavigateToProfileSetup = {
+                        navController.navigate(Route.ProfileSetup.path)
+                    }
+                )
             }
 
             composable(Route.ProfileSetup.path) {
-                PlaceholderScreen("Profile Setup")
+                ProfileSetupScreen(
+                    onNavigateToFirstDay = {
+                        navController.navigate(Route.FirstDay.path)
+                    }
+                )
             }
 
             composable(Route.FirstDay.path) {
-                PlaceholderScreen("First Day")
+                FirstDayScreen(
+                    onNavigateToHome = {
+                        navController.navigate(Route.Home.path) {
+                            popUpTo(Route.Welcome.path) { inclusive = true }
+                        }
+                    },
+                    onNavigateToHrvMeasure = {
+                        navController.navigate(Route.Home.path) {
+                            popUpTo(Route.Welcome.path) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
     }
@@ -352,21 +496,5 @@ private fun VitaNovaBottomBar(navController: NavHostController) {
                 )
             )
         }
-    }
-}
-
-// ── Placeholder screen (to be replaced with real feature screens) ────────────
-
-@Composable
-private fun PlaceholderScreen(name: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = androidx.compose.ui.Alignment.Center
-    ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground
-        )
     }
 }

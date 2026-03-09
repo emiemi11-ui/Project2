@@ -3,7 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip,
 } from 'recharts';
 import { Search, Download, ChevronDown, ChevronRight, Users } from 'lucide-react';
-import { persons } from '../data/mockData';
+import { persons } from '../../data/mockData';
 
 /* ── colour tokens ── */
 const GREEN  = '#00E5A0';

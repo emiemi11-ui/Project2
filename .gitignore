@@ -1,0 +1,18 @@
+# Dependencies
+web/node_modules/
+
+# Build outputs
+web/dist/
+android/.gradle/
+
+# Lock files
+web/package-lock.json
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
